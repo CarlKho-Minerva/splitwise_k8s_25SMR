@@ -1,0 +1,57 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg
+*.egg-info
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.whl
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tgz
+*.tar.xz
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written into a dist/ subdirectory.
+#  But we will be cautious and exclude them nevertheless.
+**/_MEIPASS*
+#   The directory PyInstaller uses to bootload the application
+**/_MEI*
+
+# dotenv
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+*.swp
+*.swo
+.DS_Store
+
+# uvicorn
+.uvicorn
+
+# poetry
+poetry.lock
