@@ -1,22 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: simple-splitwise-deployment # The name of our Deployment object
+  name: simple-splitwise-deployment
   labels:
-    app: simple-splitwise          # A label for our application
+    app: simple-splitwise
 spec:
-  replicas: 1 # We want 1 copy (Pod) of our application running initially
+  replicas: 1
   selector:
     matchLabels:
-      app: simple-splitwise # This Deployment manages Pods with this label
-  template: # This is the blueprint for the Pods this Deployment will create
+      app: simple-splitwise
+  template:
     metadata:
       labels:
-        app: simple-splitwise # Pods created by this Deployment will have this label
+        app: simple-splitwise
     spec:
       containers:
-      - name: splitwise-app-container # Name of the container within the Pod
-        image: simple-splitwise:v1   # The Docker image to use
-        # imagePullPolicy: IfNotPresent # (Important for local images - see explanation)
+      - name: splitwise-app-container
+        image: simple-splitwise:v2   # <--- MODIFIED: Use image v2
+        # imagePullPolicy: IfNotPresent # Still good to have if image not loaded to Minikube
         ports:
-        - containerPort: 80 # The port our application listens on inside the container
+        - containerPort: 80
+        env: # <--- NEW SECTION: Define environment variables
+          - name: APP_GREETING # Name of the environment variable inside the container
+            valueFrom:         # Get the value from a ConfigMap
+              configMapKeyRef:
+                name: simple-splitwise-config # Name of the ConfigMap we created
+                key: APP_GREETING             # The key within the ConfigMap whose value we want
+          # You could also set environment variables directly:
+          # - name: HARDCODED_ENV_VAR
+          #   value: "This is hardcoded"
