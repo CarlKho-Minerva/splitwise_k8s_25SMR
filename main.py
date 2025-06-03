@@ -2,14 +2,24 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from datetime import datetime
+from pathlib import Path
 import copy  # For deep copying objects
 import os
+import json
 
 app = FastAPI(title="Simple Splitwise API")
 
-# --- In-Memory Database ---
-# We'll use simple dictionaries and lists to store data in memory.
-# Data will be lost if the application restarts.
+# --- Configuration for Data File ---
+# Get the data directory from an environment variable, default to './app_data'
+# In Kubernetes, we'll mount a volume here.
+DATA_DIR = Path(os.getenv("SPLITWISE_DATA_DIR", "./app_data"))
+DATA_FILE = DATA_DIR / "splitwise_data.json"
+
+# Ensure the data directory exists
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# --- In-Memory Database (will now be loaded from/saved to file) ---
 db_users: Dict[int, Dict] = {}
 db_expenses: List[Dict] = []
 next_user_id = 1
@@ -57,7 +67,73 @@ class GreetingResponse(BaseModel):
     message: str
 
 
-# --- Helper Functions ---
+# --- Helper Functions for Data Persistence ---
+def load_data():
+    global db_users, db_expenses, next_user_id, next_expense_id
+    if DATA_FILE.exists():
+        try:
+            with open(DATA_FILE, "r") as f:
+                data = json.load(f)
+                # Convert keys in db_users back to int, as JSON stores keys as strings
+                db_users = {int(k): v for k, v in data.get("users", {}).items()}
+
+                # Convert created_at string back to datetime objects for expenses
+                loaded_expenses = data.get("expenses", [])
+                db_expenses = []
+                for exp_data in loaded_expenses:
+                    if "created_at" in exp_data and isinstance(
+                        exp_data["created_at"], str
+                    ):
+                        try:
+                            exp_data["created_at"] = datetime.fromisoformat(
+                                exp_data["created_at"].replace("Z", "+00:00")
+                            )
+                        except ValueError:
+                            # Handle cases where it might already be a datetime or different format
+                            pass
+                    db_expenses.append(exp_data)
+
+                next_user_id = data.get("next_user_id", 1)
+                next_expense_id = data.get("next_expense_id", 1)
+                print(f"Data loaded successfully from {DATA_FILE}")
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {DATA_FILE}. Starting with empty data.")
+        except Exception as e:
+            print(
+                f"Error loading data from {DATA_FILE}: {e}. Starting with empty data."
+            )
+    else:
+        print(f"Data file {DATA_FILE} not found. Starting with empty data.")
+
+
+def save_data():
+    try:
+        # Prepare expenses for JSON serialization (convert datetime to ISO string)
+        expenses_to_save = []
+        for exp in db_expenses:
+            exp_copy = exp.copy()  # Avoid modifying the in-memory db_expenses
+            if isinstance(exp_copy.get("created_at"), datetime):
+                exp_copy["created_at"] = exp_copy["created_at"].isoformat()
+            expenses_to_save.append(exp_copy)
+
+        data_to_save = {
+            "users": db_users,
+            "expenses": expenses_to_save,
+            "next_user_id": next_user_id,
+            "next_expense_id": next_expense_id,
+        }
+        with open(DATA_FILE, "w") as f:
+            json.dump(data_to_save, f, indent=4)
+        # print(f"Data saved successfully to {DATA_FILE}") # Can be noisy, uncomment for debug
+    except Exception as e:
+        print(f"Error saving data to {DATA_FILE}: {e}")
+
+
+# Load data when the application starts
+load_data()
+
+
+# --- Helper Function for User Not Found ---
 def get_user_or_404(user_id: int) -> Dict:
     user = db_users.get(user_id)
     if not user:
@@ -71,7 +147,7 @@ def get_user_or_404(user_id: int) -> Dict:
 # --- API Endpoints ---
 
 
-# == Greeting Endpoint (New) ==
+# == Greeting Endpoint ==
 @app.get("/greeting", response_model=GreetingResponse)
 async def get_greeting():
     """
