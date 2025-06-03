@@ -53,6 +53,10 @@ class UserBalance(BaseModel):
     balance: float = Field(..., example=25.50)
 
 
+class GreetingResponse(BaseModel):
+    message: str
+
+
 # --- Helper Functions ---
 def get_user_or_404(user_id: int) -> Dict:
     user = db_users.get(user_id)
