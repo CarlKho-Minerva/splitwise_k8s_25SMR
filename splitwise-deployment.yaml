@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-splitwise-deployment # The name of our Deployment object
+  labels:
+    app: simple-splitwise          # A label for our application
+spec:
+  replicas: 1 # We want 1 copy (Pod) of our application running initially
+  selector:
+    matchLabels:
+      app: simple-splitwise # This Deployment manages Pods with this label
+  template: # This is the blueprint for the Pods this Deployment will create
+    metadata:
+      labels:
+        app: simple-splitwise # Pods created by this Deployment will have this label
+    spec:
+      containers:
+      - name: splitwise-app-container # Name of the container within the Pod
+        image: simple-splitwise:v1   # The Docker image to use
+        # imagePullPolicy: IfNotPresent # (Important for local images - see explanation)
+        ports:
+        - containerPort: 80 # The port our application listens on inside the container

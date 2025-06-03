@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-splitwise-service # The name of our Service object
+spec:
+  type: NodePort # We'll start with NodePort for Minikube accessibility
+  selector:
+    app: simple-splitwise # This Service will route traffic to Pods with this label
+  ports:
+    - protocol: TCP
+      port: 80       # The port the Service will be available on *within the cluster* (ClusterIP)
+      targetPort: 80 # The port on the Pods (containerPort) that traffic should be forwarded to
+      # nodePort: 30080 # Optional: you can specify a NodePort, or let Kubernetes assign one
+                       # from the 30000-32767 range. If you specify, it must be in the range.

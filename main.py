@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from datetime import datetime
 import copy  # For deep copying objects
+import os
 
 app = FastAPI(title="Simple Splitwise API")
 
@@ -64,6 +65,18 @@ def get_user_or_404(user_id: int) -> Dict:
 
 
 # --- API Endpoints ---
+
+
+# == Greeting Endpoint (New) ==
+@app.get("/greeting", response_model=GreetingResponse)
+async def get_greeting():
+    """
+    Returns a configurable greeting message.
+    """
+    # Read the greeting message from an environment variable
+    # Provide a default value if the environment variable is not set
+    greeting_message = os.getenv("APP_GREETING", "Hello from Simple Splitwise!")
+    return {"message": greeting_message}
 
 
 # == Users ==
