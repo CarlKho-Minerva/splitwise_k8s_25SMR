@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simple-splitwise-config
+data:
+  APP_GREETING: "Welcome to K8s Splitwise!"
+  ANOTHER_CONFIG: "This is another config value"
