@@ -15,17 +15,24 @@ spec:
         app: simple-splitwise
     spec:
       containers:
-      - name: splitwise-app-container
-        image: simple-splitwise:v2   # <--- MODIFIED: Use image v2
-        # imagePullPolicy: IfNotPresent # Still good to have if image not loaded to Minikube
-        ports:
-        - containerPort: 80
-        env: # <--- NEW SECTION: Define environment variables
-          - name: APP_GREETING # Name of the environment variable inside the container
-            valueFrom:         # Get the value from a ConfigMap
-              configMapKeyRef:
-                name: simple-splitwise-config # Name of the ConfigMap we created
-                key: APP_GREETING             # The key within the ConfigMap whose value we want
-          # You could also set environment variables directly:
-          # - name: HARDCODED_ENV_VAR
-          #   value: "This is hardcoded"
+        - name: splitwise-app-container
+          image: simple-splitwise:v3 # <--- MODIFIED: Use image v3
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_GREETING # From previous step
+              valueFrom:
+                configMapKeyRef:
+                  name: simple-splitwise-config
+                  key: APP_GREETING
+            - name: SPLITWISE_DATA_DIR # <--- NEW ENV VAR
+              value: /data # Points to the mount path of our volume
+          volumeMounts: # <--- NEW SECTION: Define where to mount volumes inside the container
+            - name: splitwise-storage # Must match a volume name defined below
+              mountPath:
+                /data # Path inside the container where data will be stored
+                # This is where SPLITWISE_DATA_DIR points
+      volumes: # <--- NEW SECTION: Define volumes available to this Pod
+        - name: splitwise-storage # An arbitrary name for this volume within the Pod spec
+          persistentVolumeClaim:
+            claimName: simple-splitwise-pvc # The name of the PVC we created
