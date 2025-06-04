@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import copy  # For deep copying objects
 import os
@@ -169,6 +169,7 @@ async def create_user(user_in: UserCreate):
     new_user = {"id": next_user_id, "name": user_in.name}
     db_users[next_user_id] = new_user
     next_user_id += 1
+    save_data()
     return new_user
 
 
@@ -210,20 +211,40 @@ async def create_expense(expense_in: ExpenseCreate):
             detail="Expense must have at least one participant.",
         )
 
-    new_expense = expense_in.model_dump()  # Use model_dump() for Pydantic v2+
-    new_expense["id"] = next_expense_id
-    new_expense["created_at"] = datetime.utcnow()
-    db_expenses.append(new_expense)
+    new_expense_dict = expense_in.model_dump()
+    new_expense_dict["id"] = next_expense_id
+    new_expense_dict["created_at"] = datetime.now(
+        timezone.utc
+    )  # Store as datetime in memory
+
+    db_expenses.append(new_expense_dict)
     next_expense_id += 1
-    return new_expense
+    save_data()  # Save after modification
+
+    # For the response, ensure created_at is a datetime object as defined by the Expense model
+    return Expense(**new_expense_dict)
 
 
 @app.get("/expenses", response_model=List[Expense])
 async def get_expenses():
     """
     Get a list of all expenses.
+    Converts created_at strings back to datetime objects for response.
     """
-    return db_expenses
+    response_expenses = []
+    for exp_data in db_expenses:
+        exp_copy = exp_data.copy()
+        if isinstance(exp_copy.get("created_at"), str):
+            try:
+                exp_copy["created_at"] = datetime.fromisoformat(
+                    exp_copy["created_at"].replace("Z", "+00:00")
+                )
+            except ValueError:
+                pass  # If it's not a valid ISO string, pass it as is or handle error
+        response_expenses.append(
+            Expense(**exp_copy)
+        )  # Validate against Expense model for response
+    return response_expenses
 
 
 # == Balances ==
