@@ -155,7 +155,7 @@ async def get_greeting():
     """
     # Read the greeting message from an environment variable
     # Provide a default value if the environment variable is not set
-    greeting_message = os.getenv("APP_GREETING", "Hello from Simple Splitwise!")
+    greeting_message = os.getenv("APP_GREETING", "Hello from Simple Splitwise v2! Now with more features and data persistence!")
     return {"message": greeting_message}
 
 

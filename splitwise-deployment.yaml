@@ -5,7 +5,7 @@ metadata:
   labels:
     app: simple-splitwise
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       app: simple-splitwise
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: splitwise-app-container
-          image: simple-splitwise:v3 # <--- MODIFIED: Use image v3
+          image: simple-splitwise:v4 # <--- MODIFIED: Use image v3
           ports:
             - containerPort: 80
           env:

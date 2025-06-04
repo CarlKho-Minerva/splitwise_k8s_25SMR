@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: simple-splitwise-config
 data:
-  APP_GREETING: "Welcome to K8s Splitwise by Carl for Dell!"
+  APP_GREETING: "Hello from Simple Splitwise v2! Now with more features and data persistence!"
   ANOTHER_CONFIG: "This is another config value"
