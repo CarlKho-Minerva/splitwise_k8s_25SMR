@@ -334,10 +334,10 @@ spec:
         - name: my-volume-storage
           persistentVolumeClaim:
             claimName: my-pvc-name
-
+```
 
 Example Service Key spec Fields:
-
+```yaml
 spec:
   type: NodePort # or ClusterIP, LoadBalancer
   selector:
@@ -347,7 +347,7 @@ spec:
       port: 80       # Port on the Service's ClusterIP
       targetPort: 8080 # Port on the Pods/containers
       # nodePort: 30080 # Optional for NodePort type
-
+```
 
 ## 6. Common Sequences of Operations
 
@@ -483,8 +483,6 @@ This section outlines common sequences of operations I have performed.
 2.  **Quit Docker Desktop.**
 
 ## 7. Insights & Tips for Carl
-
-Based on our conversation, here are some things that might be particularly useful for you:
 
 *   **Embrace Aliases & Autocompletion Early:** You mentioned the amount of typing.
     *   `alias k='kubectl'` is your best friend.
