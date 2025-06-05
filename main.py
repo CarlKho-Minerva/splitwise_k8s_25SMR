@@ -147,6 +147,16 @@ def get_user_or_404(user_id: int) -> Dict:
 # --- API Endpoints ---
 
 
+# == Health Check Endpoint (New) ==
+@app.get("/health", status_code=status.HTTP_200_OK)
+async def health_check():
+    """
+    Simple health check endpoint.
+    Returns HTTP 200 if the application is responsive.
+    """
+    return {"status": "healthy"}
+
+
 # == Greeting Endpoint ==
 @app.get("/greeting", response_model=GreetingResponse)
 async def get_greeting():
@@ -155,7 +165,10 @@ async def get_greeting():
     """
     # Read the greeting message from an environment variable
     # Provide a default value if the environment variable is not set
-    greeting_message = os.getenv("APP_GREETING", "Hello from Simple Splitwise v2! Now with more features and data persistence!")
+    greeting_message = os.getenv(
+        "APP_GREETING",
+        "Hello from Simple Splitwise v2! Now with more features and data persistence!",
+    )
     return {"message": greeting_message}
 
 

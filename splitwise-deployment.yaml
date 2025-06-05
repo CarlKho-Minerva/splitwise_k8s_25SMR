@@ -5,7 +5,7 @@ metadata:
   labels:
     app: simple-splitwise
 spec:
-  replicas: 4
+  replicas: 1
   selector:
     matchLabels:
       app: simple-splitwise
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: splitwise-app-container
-          image: simple-splitwise:v4 # <--- MODIFIED: Use image v3
+          image: simple-splitwise:v5 # <--- MODIFIED: Use image v3
           ports:
             - containerPort: 80
           env:
@@ -32,6 +32,26 @@ spec:
               mountPath:
                 /data # Path inside the container where data will be stored
                 # This is where SPLITWISE_DATA_DIR points
+          # --- NEW: Liveness Probe ---
+          livenessProbe:
+            httpGet:
+              path: /health  # Path to check
+              port: 80       # Port on the container to check
+            initialDelaySeconds: 15 # Wait 15s after container starts before first probe
+            periodSeconds: 20       # Probe every 20s
+            timeoutSeconds: 5         # Probe timeout
+            failureThreshold: 3       # Consider it failed after 3 consecutive failures
+
+          # --- NEW: Readiness Probe ---
+          readinessProbe:
+            httpGet:
+              path: /health  # Path to check
+              port: 80       # Port on the container to check
+            initialDelaySeconds: 5  # Wait 5s after container starts before first probe
+            periodSeconds: 10       # Probe every 10s
+            timeoutSeconds: 5         # Probe timeout
+            failureThreshold: 3       # Consider it failed after 3 consecutive failures
+
       volumes: # <--- NEW SECTION: Define volumes available to this Pod
         - name: splitwise-storage # An arbitrary name for this volume within the Pod spec
           persistentVolumeClaim:
